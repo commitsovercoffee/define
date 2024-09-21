@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"html"
 	"os"
 	"strings"
 )
@@ -17,16 +16,6 @@ type Meaning struct {
 type Entry struct {
 	Word     string    `json:"word"`
 	Meanings []Meaning `json:"meanings"`
-}
-
-var partOfSpeechDescriptions = map[string]string{
-	"n.":     "Noun",
-	"v.":     "Verb",
-	"v. t.":  "Transitive Verb",
-	"v. i.":  "Intransitive Verb",
-	"a.":     "Adjective",
-	"adv.":   "Adverb",
-	"n. pl.": "Plural Noun",
 }
 
 func main() {
@@ -78,7 +67,7 @@ func loadDictionary(filename string) ([]Entry, error) {
 		if len(record) == 3 {
 			word := record[0]
 			partOfSpeech := record[1]
-			meaning := formatMeaning(record[2])
+			meaning := record[2]
 
 			if _, exists := entriesMap[word]; !exists {
 				entriesMap[word] = make(map[string][]string)
@@ -91,9 +80,8 @@ func loadDictionary(filename string) ([]Entry, error) {
 	for word, parts := range entriesMap {
 		meanings := []Meaning{}
 		for part, meaningsList := range parts {
-			descriptivePart := partOfSpeechDescriptions[part]
 			meanings = append(meanings, Meaning{
-				PartOfSpeech: descriptivePart,
+				PartOfSpeech: part,
 				Meanings:     meaningsList,
 			})
 		}
@@ -106,13 +94,6 @@ func loadDictionary(filename string) ([]Entry, error) {
 	return entries, nil
 }
 
-// formatMeaning cleans up the meaning string
-func formatMeaning(meaning string) string {
-	// Decode HTML entities and handle other formatting
-	decoded := html.UnescapeString(meaning)
-	return strings.ReplaceAll(decoded, "&", "and")
-}
-
 // findEntry searches for a word in the dictionary entries and returns a structured Entry
 func findEntry(entries []Entry, word string) *Entry {
 	for _, entry := range entries {
@@ -122,3 +103,4 @@ func findEntry(entries []Entry, word string) *Entry {
 	}
 	return nil
 }
+
